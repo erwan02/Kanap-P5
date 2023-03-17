@@ -1,0 +1,216 @@
+const numberofItems = localStorage.length;
+console.log("vous avez ajouté", numberofItems);
+const cart = [];
+
+for (let i = 1; i <= numberofItems; i++) {
+  const item = localStorage.getItem(localStorage.key(i));
+  const itemObject = JSON.parse(item);
+  cart.push(itemObject);
+}
+
+const cartItemsContainer = document.querySelector("#cart__items");
+
+cart.forEach((item) => {
+  const article = document.createElement("article");
+  article.classList.add("cart__item");
+  article.setAttribute("data-id", item.id);
+
+  const divImg = document.createElement("div");
+  divImg.classList.add("cart__item__img");
+
+  const img = document.createElement("img");
+  img.setAttribute("src", item.imageUrl);
+  img.setAttribute("alt", item.name);
+  divImg.appendChild(img);
+
+  const divContent = document.createElement("div");
+  divContent.classList.add("cart__item__content");
+
+  const divTitlePrice = document.createElement("div");
+  divTitlePrice.classList.add("cart__item__content__titlePrice");
+
+  const h2 = document.createElement("h2");
+  h2.innerText = item.name;
+  divTitlePrice.appendChild(h2);
+
+  const pPrice = document.createElement("p");
+  pPrice.innerText = item.price;
+  divTitlePrice.appendChild(pPrice);
+
+  divContent.appendChild(divTitlePrice);
+
+  const divSettings = document.createElement("div");
+  divSettings.classList.add("cart__item__content__settings");
+
+  const divQuantity = document.createElement("div");
+  divQuantity.classList.add("cart__item__content__settings__quantity");
+
+  const pQuantity = document.createElement("p");
+  pQuantity.innerText = "Qté : ";
+  divQuantity.appendChild(pQuantity);
+
+  const inputQuantity = document.createElement("input");
+  inputQuantity.setAttribute("type", "number");
+  inputQuantity.classList.add("itemQuantity");
+  inputQuantity.setAttribute("name", "itemQuantity");
+  inputQuantity.setAttribute("min", "1");
+  inputQuantity.setAttribute("max", "100");
+  inputQuantity.setAttribute("value", item.quantity.toString());
+  inputQuantity.addEventListener("change", (event) => {
+    const newQuantity = parseInt(event.target.value);
+    item.quantity = newQuantity;
+    localStorage.setItem(item.id, JSON.stringify(item));
+    updateCartTotal();
+  });
+
+  divQuantity.appendChild(inputQuantity);
+
+  divSettings.appendChild(divQuantity);
+
+  const divDelete = document.createElement("div");
+  divDelete.classList.add("cart__item__content__settings__delete");
+
+  const pDelete = document.createElement("p");
+  pDelete.classList.add("deleteItem");
+  pDelete.innerText = "Supprimer";
+  pDelete.addEventListener("click", (event) => {
+    const itemId = event.target.closest("article").getAttribute("data-id");
+    localStorage.removeItem(itemId);
+    event.target.closest("article").remove();
+    updateCartTotal();
+  });
+
+  divDelete.appendChild(pDelete);
+
+  divSettings.appendChild(divDelete);
+
+  divContent.appendChild(divSettings);
+
+  article.appendChild(divImg);
+  article.appendChild(divContent);
+
+  cartItemsContainer.appendChild(article);
+});
+
+function updateCartTotal() {
+  const cartItems = document.querySelectorAll(".cart__item");
+  let total = 0;
+  for (let i = 0; i < cartItems.length; i++) {
+    const cartItem = cartItems[i];
+    const priceElement = cartItem.querySelector(".cart__item__content__titlePrice p");
+    const quantityElement = cartItem.querySelector(".itemQuantity");
+    const price = parseFloat(priceElement.innerText.replace("€", ""));
+    const quantity = quantityElement.value;
+    total += price * quantity;
+  }
+  const totalElement = document.querySelector("#totalPrice");
+  totalElement.innerText = total + "€";
+}
+
+
+
+
+
+
+
+// Récupération des éléments HTML
+const firstName = document.getElementById("firstName");
+const lastName = document.getElementById("lastName");
+const address = document.getElementById("address");
+const city = document.getElementById("city");
+const email = document.getElementById("email");
+const order = document.getElementById("order");
+
+// Récupération des éléments HTML pour les messages d'erreur
+const errorFirstName = document.getElementById("firstNameErrorMsg");
+const errorLastName = document.getElementById("lastNameErrorMsg");
+const errorAddress = document.getElementById("addressErrorMsg");
+const errorCity = document.getElementById("cityErrorMsg");
+const errorEmail = document.getElementById("emailErrorMsg");
+
+// Regex pour la validation des champs
+const regexName = /^[a-z ,.'-]+$/i;
+const regexAddress = /^[a-zA-Z0-9\s,'-]$/;
+const regexCity = /^[a-zA-Z\u0080-\u024F]+(?:([\ -']|(.\ ))[a-zA-Z\u0080-\u024F]+)$/;
+const regexEmail = /^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)$/;
+
+// Fonction de validation d'un champ
+function validateField(input, regex, errorMsg) {
+if (!regex.test(input.value)) {
+errorMsg.innerHTML = "Champ incorrect";
+return false;
+} else {
+errorMsg.innerHTML = "";
+return true;
+}
+}
+
+// Validation des champs au changement de valeur
+firstName.addEventListener("input", () => {
+validateField(firstName, regexName, errorFirstName);
+});
+
+lastName.addEventListener("input", () => {
+validateField(lastName, regexName, errorLastName);
+});
+
+address.addEventListener("input", () => {
+validateField(address, regexAddress, errorAddress);
+});
+
+city.addEventListener("input", () => {
+validateField(city, regexCity, errorCity);
+});
+
+email.addEventListener("input", () => {
+validateField(email, regexEmail, errorEmail);
+});
+
+// Fonction de validation du formulaire
+function validateForm() {
+if (!validateField(firstName, regexName, errorFirstName) ||
+!validateField(lastName, regexName, errorLastName) ||
+!validateField(address, regexAddress, errorAddress) ||
+!validateField(city, regexCity, errorCity) ||
+!validateField(email, regexEmail, errorEmail)) {
+return false;
+}
+return true;
+}
+
+// Envoi de la commande
+order.addEventListener("click", (event) => {
+event.preventDefault();
+
+if (!validateForm()) {
+window.confirm("Champs manquants ou incorrects !");
+return;
+}
+
+const contact = {
+firstName: firstName.value,
+lastName: lastName.value,
+address: address.value,
+city: city.value,
+email: email.value
+};
+
+const products = registerItem.map(item => item.id);
+const orderData = { contact, products };
+
+fetch("http://localhost:3000/api/products/order", {
+method: "POST",
+headers: {
+Accept: "application/json",
+"Content-type": "application/json",
+},
+body: JSON.stringify(orderData)
+})
+.then((response) => response.json())
+.then((data) => {
+window.location.href = `confirmation.html?orderId=${data.orderId}`;
+})
+.catch((error) => {
+alert(error);
+});
+});
